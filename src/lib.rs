@@ -23,11 +23,10 @@ impl Stack {
 	}
 
 	pub fn op(&mut self, op: &str) -> StackResult<f64> {
-		match op {
-			"+" => self.bin_op(|l, r| l + r),
-			"-" => self.bin_op(|l, r| l - r),
-			"*" => self.bin_op(|l, r| l * r),
-			"/" => self.bin_op(|l, r| l / r),
+		let op_fn = get_op_fn(op);
+
+		match op_fn {
+			Some(f) => self.bin_op(f),
 			_ => Err("unknown operator"),
 		}
 	}
@@ -36,8 +35,8 @@ impl Stack {
 	where
 		F: FnOnce(f64, f64) -> f64,
 	{
-		let rop = self.stack.pop();
 		let lop = self.stack.pop();
+		let rop = self.stack.pop();
 
 		match (rop, lop) {
 			(Some(l), Some(r)) => {
@@ -70,5 +69,17 @@ pub fn is_op(s: &str) -> bool {
 	match s {
 		"+" | "-" | "*" | "/" => true,
 		_ => false,
+	}
+}
+
+type OpFn = fn(f64, f64) -> f64;
+
+fn get_op_fn(s: &str) -> Option<OpFn> {
+	match s {
+		"+" => Some(|l, r| l + r),
+		"-" => Some(|l, r| l - r),
+		"*" => Some(|l, r| l * r),
+		"/" => Some(|l, r| l / r),
+		_ => None,
 	}
 }
