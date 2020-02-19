@@ -7,10 +7,10 @@ use sc::*;
 
 fn main() {
 	let mut stack = Stack::new();
-
 	let mut rl = Editor::<()>::new();
+
 	loop {
-		let readline = rl.readline("");
+		let readline = rl.readline(">> ");
 		match readline {
 			Ok(line) => {
 				if is_op(line.as_str()) {
@@ -24,7 +24,7 @@ fn main() {
 
 					match parsed_float {
 						Ok(f) => stack.push(f),
-						Err(e) => println!("error: {:?}", e),
+						Err(_) => println!("could not parse number"),
 					}
 				}
 			}

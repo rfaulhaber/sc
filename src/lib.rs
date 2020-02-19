@@ -1,3 +1,5 @@
+mod expr;
+
 pub struct Stack {
 	stack: Vec<f64>,
 }
@@ -66,10 +68,7 @@ pub enum Mode {
 }
 
 pub fn is_op(s: &str) -> bool {
-	match s {
-		"+" | "-" | "*" | "/" => true,
-		_ => false,
-	}
+	get_op_fn(s).is_some()
 }
 
 type OpFn = fn(f64, f64) -> f64;
