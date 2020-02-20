@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Expr {
 	stack: Vec<Term>,
 }
@@ -28,34 +28,7 @@ pub enum ParseErrorKind {
 
 impl Expr {
 	pub fn parse(s: &str) -> Result<Expr, ParseError> {
-		let mut stack: Vec<Term> = Vec::new();
-
-		for t in s.split_whitespace() {
-			let term = match t {
-				"+" => Term::BinOp(BinOp::Add),
-				"-" => Term::BinOp(BinOp::Sub),
-				"*" => Term::BinOp(BinOp::Mul),
-				"/" => Term::BinOp(BinOp::Div),
-				// "//" => Term::BinOp(BinOp::IDiv),
-				"!" => Term::UnOp(UnOp::Fact),
-				s => match s.parse::<f64>() {
-					Ok(f) => Term::Number(f),
-					Err(_) => {
-						return Err(ParseError {
-							kind: ParseErrorKind::InvalidTerm(format!(
-								"invalid token found: {}",
-								t
-							)),
-						})
-					}
-				},
-			};
-
-			stack.push(term);
-		}
-
-		stack.reverse();
-
+		let stack = make_stack(s)?;
 		Ok(Expr { stack })
 	}
 
@@ -90,12 +63,48 @@ impl Expr {
 		if local_stack.is_empty() {
 			Err("empty stack")
 		} else {
-			Ok(local_stack.pop().unwrap())
+			let result = local_stack.pop().unwrap();
+			self.stack.push(Term::Number(result));
+			Ok(result)
 		}
+	}
+
+	pub fn push_expr(&mut self, mut e: Expr) {
+		e.stack.extend(self.stack.clone());
+		self.stack = e.stack;
 	}
 }
 
-#[derive(Debug, PartialEq)]
+fn parse_term(s: &str) -> Result<Term, ParseError> {
+	match s {
+		"+" => Ok(Term::BinOp(BinOp::Add)),
+		"-" => Ok(Term::BinOp(BinOp::Sub)),
+		"*" => Ok(Term::BinOp(BinOp::Mul)),
+		"/" => Ok(Term::BinOp(BinOp::Div)),
+		"!" => Ok(Term::UnOp(UnOp::Fact)),
+		s => match s.parse::<f64>() {
+			Ok(f) => Ok(Term::Number(f)),
+			Err(_) => Err(ParseError {
+				kind: ParseErrorKind::InvalidTerm(format!("invalid token found: {}", s)),
+			}),
+		},
+	}
+}
+
+fn make_stack(s: &str) -> Result<Vec<Term>, ParseError> {
+	let mut stack = Vec::new();
+
+	for t in s.split_whitespace() {
+		let term = parse_term(t)?;
+		stack.push(term);
+	}
+
+	stack.reverse();
+
+	Ok(stack)
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Term {
 	Number(f64),
 	BinOp(BinOp),
@@ -114,23 +123,7 @@ impl From<UnOp> for Term {
 	}
 }
 
-impl Term {
-	fn is_op(&self) -> bool {
-		match self {
-			Term::BinOp(_) | Term::UnOp(_) => true,
-			_ => false,
-		}
-	}
-
-	fn is_number(&self) -> bool {
-		match self {
-			Term::Number(_) => true,
-			_ => false,
-		}
-	}
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BinOp {
 	Add,
 	Sub,
@@ -138,7 +131,7 @@ pub enum BinOp {
 	Div,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnOp {
 	Fact,
 	Sin,
@@ -183,10 +176,57 @@ mod tests {
 	#[test]
 	fn expr_evaluates() {
 		let input = "1 2 +";
-		let expected = 3.0;
 
-		let result = Expr::parse(input).unwrap().evaluate().unwrap();
+		let result = Expr::parse(input).unwrap().evaluate();
 
-		assert_eq!(result, expected);
+		assert_eq!(Ok(3.0), result);
+	}
+
+	#[test]
+	fn expr_push_evaluates() {
+		let mut expr = Expr {
+			stack: vec![
+				Term::BinOp(BinOp::Add),
+				Term::Number(2.0),
+				Term::Number(1.0),
+			],
+		};
+
+		let expr_right = Expr {
+			stack: vec![Term::BinOp(BinOp::Div), Term::Number(3.0)],
+		};
+
+		expr.push_expr(expr_right);
+
+		let expected_stack = vec![
+			Term::BinOp(BinOp::Div),
+			Term::Number(3.0),
+			Term::BinOp(BinOp::Add),
+			Term::Number(2.0),
+			Term::Number(1.0),
+		];
+
+		assert_eq!(expr.stack, expected_stack);
+	}
+
+	#[test]
+	fn pushed_expr_evaluates() {
+		let mut expr = Expr {
+			stack: vec![
+				Term::BinOp(BinOp::Add),
+				Term::Number(2.0),
+				Term::Number(1.0),
+			],
+		};
+
+		let expr_right = Expr {
+			stack: vec![Term::BinOp(BinOp::Div), Term::Number(3.0)],
+		};
+
+		expr.push_expr(expr_right);
+
+		let result = expr.evaluate();
+
+		assert_eq!(Ok(1.0), result);
 	}
 }
