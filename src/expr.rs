@@ -1,11 +1,26 @@
+use std::fmt;
+
+#[derive(Debug)]
 pub struct Expr {
 	stack: Vec<Term>,
 }
 
+#[derive(Debug)]
 pub struct ParseError {
 	kind: ParseErrorKind,
 }
 
+impl fmt::Display for ParseError {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match &self.kind {
+			ParseErrorKind::InvalidTerm(s) | ParseErrorKind::InvalidOperator(s) => {
+				write!(f, "{}", s)
+			}
+		}
+	}
+}
+
+#[derive(Debug)]
 pub enum ParseErrorKind {
 	InvalidOperator(String),
 	InvalidTerm(String),
@@ -80,6 +95,7 @@ impl Expr {
 	}
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Term {
 	Number(f64),
 	BinOp(BinOp),
@@ -114,6 +130,7 @@ impl Term {
 	}
 }
 
+#[derive(Debug, PartialEq)]
 pub enum BinOp {
 	Add,
 	Sub,
@@ -121,6 +138,7 @@ pub enum BinOp {
 	Div,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum UnOp {
 	Fact,
 	Sin,
@@ -149,10 +167,26 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn evaluate_short_returns_result() {
+	fn expr_parses() {
+		let input = "1 2 +";
+		let expected = vec![
+			Term::BinOp(BinOp::Add),
+			Term::Number(2.0),
+			Term::Number(1.0),
+		];
+
+		let expr = Expr::parse(input).unwrap();
+
+		assert_eq!(expr.stack, expected);
+	}
+
+	#[test]
+	fn expr_evaluates() {
 		let input = "1 2 +";
 		let expected = 3.0;
 
-		let expr = Expr::parse(input);
+		let result = Expr::parse(input).unwrap().evaluate().unwrap();
+
+		assert_eq!(result, expected);
 	}
 }
