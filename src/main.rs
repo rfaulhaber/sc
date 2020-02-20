@@ -8,6 +8,7 @@ use sc::expr::Expr;
 fn main() {
 	let mut rl = Editor::<()>::new();
 
+	// TODO decouple `expr` and `stack` objects, repl needs application stack
 	let mut expr = Expr::default();
 
 	loop {
