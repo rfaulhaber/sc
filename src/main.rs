@@ -14,9 +14,10 @@ fn main() {
 		let readline = rl.readline("");
 		match readline {
 			Ok(line) => match &mut Expr::parse(line.as_str()) {
-				Ok(e) => match e.evaluate(stack.as_slice()) {
+				Ok(e) => match e.evaluate(&mut stack) {
 					Ok(val) => {
 						stack.push(val);
+						println!("stack: {:?}", stack);
 						println!("{}", val);
 					}
 					Err(e) => println!("error: {}", e),

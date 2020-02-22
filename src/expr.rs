@@ -32,26 +32,24 @@ impl Expr {
 		Ok(Expr { stack })
 	}
 
-	pub fn evaluate(&mut self, stack: &[f64]) -> Result<f64, &'static str> {
+	pub fn evaluate(&mut self, stack: &mut Vec<f64>) -> Result<f64, &'static str> {
 		if self.stack.is_empty() {
 			return Err("stack empty");
 		}
-
-		let mut local_stack = Vec::from(stack);
 
 		while !self.stack.is_empty() {
 			let t = self.stack.pop();
 
 			match t {
-				Some(Term::Number(n)) => local_stack.push(n),
+				Some(Term::Number(n)) => stack.push(n),
 				Some(Term::BinOp(op)) => {
-					let right_op = local_stack.pop();
-					let left_op = local_stack.pop();
+					let right_op = stack.pop();
+					let left_op = stack.pop();
 					let op = get_bin_op(op);
 
 					match (left_op, right_op) {
-						(Some(l), Some(r)) => local_stack.push(op(l, r)),
-						(None, Some(r)) => local_stack.push(r),
+						(Some(l), Some(r)) => stack.push(op(l, r)),
+						(None, Some(r)) => stack.push(r),
 						_ => return Err("not enough items on stack"),
 					}
 				}
@@ -60,10 +58,10 @@ impl Expr {
 			}
 		}
 
-		if local_stack.is_empty() {
+		if stack.is_empty() {
 			Err("empty stack")
 		} else {
-			let result = local_stack.pop().unwrap();
+			let result = stack.pop().unwrap();
 			self.stack.push(Term::Number(result));
 			Ok(result)
 		}
@@ -177,7 +175,7 @@ mod tests {
 	fn expr_evaluates() {
 		let input = "1 2 + +";
 
-		let result = Expr::parse(input).unwrap().evaluate(&[3.0]);
+		let result = Expr::parse(input).unwrap().evaluate(&mut vec![3.0]);
 
 		assert_eq!(Ok(6.0), result);
 	}
@@ -225,7 +223,7 @@ mod tests {
 
 		expr.push_expr(expr_right);
 
-		let result = expr.evaluate(&[]);
+		let result = expr.evaluate(&mut vec![]);
 
 		assert_eq!(Ok(1.0), result);
 	}
