@@ -8,21 +8,19 @@ use sc::expr::Expr;
 fn main() {
 	let mut rl = Editor::<()>::new();
 
-	// TODO decouple `expr` and `stack` objects, repl needs application stack
-	let mut expr = Expr::default();
+	let mut stack: Vec<f64> = Vec::new();
 
 	loop {
-		let readline = rl.readline(">> ");
+		let readline = rl.readline("");
 		match readline {
-			Ok(line) => match Expr::parse(line.as_str()) {
-				Ok(e) => {
-					expr.push_expr(e);
-
-					match expr.evaluate() {
-						Ok(val) => println!("{}", val),
-						Err(e) => println!("error: {}", e),
+			Ok(line) => match &mut Expr::parse(line.as_str()) {
+				Ok(e) => match e.evaluate(stack.as_slice()) {
+					Ok(val) => {
+						stack.push(val);
+						println!("{}", val);
 					}
-				}
+					Err(e) => println!("error: {}", e),
+				},
 				Err(e) => println!("error: {}", e),
 			},
 			Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {

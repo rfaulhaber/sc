@@ -32,12 +32,12 @@ impl Expr {
 		Ok(Expr { stack })
 	}
 
-	pub fn evaluate(&mut self) -> Result<f64, &'static str> {
+	pub fn evaluate(&mut self, stack: &[f64]) -> Result<f64, &'static str> {
 		if self.stack.is_empty() {
 			return Err("stack empty");
 		}
 
-		let mut local_stack = Vec::new();
+		let mut local_stack = Vec::from(stack);
 
 		while !self.stack.is_empty() {
 			let t = self.stack.pop();
@@ -175,11 +175,11 @@ mod tests {
 
 	#[test]
 	fn expr_evaluates() {
-		let input = "1 2 +";
+		let input = "1 2 + +";
 
-		let result = Expr::parse(input).unwrap().evaluate();
+		let result = Expr::parse(input).unwrap().evaluate(&[3.0]);
 
-		assert_eq!(Ok(3.0), result);
+		assert_eq!(Ok(6.0), result);
 	}
 
 	#[test]
@@ -225,7 +225,7 @@ mod tests {
 
 		expr.push_expr(expr_right);
 
-		let result = expr.evaluate();
+		let result = expr.evaluate(&[]);
 
 		assert_eq!(Ok(1.0), result);
 	}
