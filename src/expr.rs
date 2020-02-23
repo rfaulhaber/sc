@@ -79,6 +79,7 @@ fn parse_term(s: &str) -> Result<Term, ParseError> {
 		"-" => Ok(Term::BinOp(BinOp::Sub)),
 		"*" => Ok(Term::BinOp(BinOp::Mul)),
 		"/" => Ok(Term::BinOp(BinOp::Div)),
+		"//" => Ok(Term::BinOp(BinOp::IDiv)),
 		"!" => Ok(Term::UnOp(UnOp::Fact)),
 		s => match s.parse::<f64>() {
 			Ok(f) => Ok(Term::Number(f)),
@@ -127,6 +128,7 @@ pub enum BinOp {
 	Sub,
 	Mul,
 	Div,
+	IDiv,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -150,6 +152,7 @@ fn get_bin_op(op: BinOp) -> fn(f64, f64) -> f64 {
 		BinOp::Sub => |l, r| l - r,
 		BinOp::Mul => |l, r| l * r,
 		BinOp::Div => |l, r| l / r,
+		BinOp::IDiv => |l, r| (l as i64 / r as i64) as f64,
 	}
 }
 
