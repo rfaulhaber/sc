@@ -13,16 +13,19 @@ cargo install --git https://github.com/rfaulhaber/sc
 
 ## Use
 
-While the program is running, add numbers or the result of expressions to the stack.
-The program will echo the result.
+While the program is running, enter values to add them onto the stack. When
+you want to perform an operation, enter any valid operator.
 
-For example, if I add `1`, `2`, and `1 2 +`, the output would be:
+For example:
 
 ```
 1
-1
 2
-2
-1 2 +
 3
++
+p
+5
++ 6 /
+p
+1
 ```

@@ -14,9 +14,23 @@ fn main() {
 	loop {
 		let readline = rl.readline("");
 		match readline {
-			Ok(line) if line.starts_with(':') => match Command::parse(line.as_str()) {
+			Ok(line) if is_command(line.as_str()) => match Command::parse(line.as_str()) {
 				Ok(c) => match c {
-					Command::Stack => println!("{:?}", stack),
+					Command::Stack => {
+						print!("[ ");
+						for f in &stack {
+							print!("{} ", f);
+						}
+
+						print!(" ]");
+					}
+					Command::Print => println!(
+						"{}",
+						stack
+							.last()
+							.map(|f| f.to_string())
+							.unwrap_or_else(|| String::from("sc: stack empty"))
+					),
 					Command::Clear => {
 						stack.clear();
 						println!("stack cleared");
@@ -28,7 +42,6 @@ fn main() {
 				Ok(e) => match e.evaluate(&mut stack) {
 					Ok(val) => {
 						stack.push(val);
-						println!("{}", val);
 					}
 					Err(e) => println!("error: {}", e),
 				},

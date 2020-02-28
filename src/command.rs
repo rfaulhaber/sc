@@ -2,14 +2,23 @@
 pub enum Command {
 	Stack,
 	Clear,
+	Print,
 }
 
 impl<'s> Command {
 	pub fn parse(s: &str) -> Result<Command, &'static str> {
 		match s {
-			":stack" => Ok(Command::Stack),
-			":clear" => Ok(Command::Clear),
+			"s" => Ok(Command::Stack),
+			"c" => Ok(Command::Clear),
+			"p" => Ok(Command::Print),
 			_ => Err("unknown command"),
 		}
+	}
+}
+
+pub fn is_command(s: &str) -> bool {
+	match s {
+		"s" | "c" | "p" => true,
+		_ => false,
 	}
 }
