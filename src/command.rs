@@ -3,6 +3,7 @@ pub enum Command {
 	Stack,
 	Clear,
 	Print,
+	Help,
 }
 
 impl<'s> Command {
@@ -11,6 +12,7 @@ impl<'s> Command {
 			"s" => Ok(Command::Stack),
 			"c" => Ok(Command::Clear),
 			"p" => Ok(Command::Print),
+			"h" => Ok(Command::Help),
 			_ => Err("unknown command"),
 		}
 	}
@@ -18,7 +20,7 @@ impl<'s> Command {
 
 pub fn is_command(s: &str) -> bool {
 	match s {
-		"s" | "c" | "p" => true,
+		"s" | "c" | "p" | "h" => true,
 		_ => false,
 	}
 }
