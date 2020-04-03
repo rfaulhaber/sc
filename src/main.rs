@@ -1,5 +1,7 @@
 extern crate rustyline;
 
+use std::io::{self, Read};
+
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -16,10 +18,32 @@ const HELP_MESSAGE: &'static str = r#"sc help
 
 "#;
 
-fn main() {
+fn main() -> io::Result<()> {
     let mut rl = Editor::<()>::new();
 
     let mut stack: Vec<f64> = Vec::new();
+
+	let stdin = io::stdin();
+	let mut handle = stdin.lock();
+
+	let mut stdin_input = String::new();
+
+	handle.read_to_string(&mut stdin_input)?;
+
+	if !stdin_input.is_empty() {
+		match &mut Expr::parse(stdin_input.as_str()) {
+			Ok(expr) => {
+				match expr.evaluate(&mut Vec::new()) {
+					Ok(result) => println!("{}", result),
+					Err(e) => eprintln!("error: {}", e),
+				};
+				return Ok(());
+			}
+			Err(e) => eprintln!("error: {}", e),
+		};
+
+		return Ok(());
+	}
 
     loop {
         let readline = rl.readline("");
@@ -69,4 +93,6 @@ fn main() {
             }
         }
     }
+
+	Ok(())
 }
